@@ -98,7 +98,27 @@ func PutUvarint(slicedArray []byte, x uint64) int {
 		}
 	}
 
-	fmt.Printf("Size: %d\n", size)
+	if x <= 0xff {
+		slicedArray[0] = byte(x)
+		fmt.Printf("0b%08b\n", slicedArray[0])
+		return 1
+	}
+	if x <= 0xffff {
+		slicedArray[0] = byte(x)
+		slicedArray[1] = byte(x >> 8)
+		fmt.Printf("0b%08b, 0b%08b\n", slicedArray[0], slicedArray[1])
+		return 2
+	}
+	if x <= 0xffffffff {
+		slicedArray[0] = byte(x)
+		slicedArray[1] = byte(x >> 8)
+		slicedArray[2] = byte(x >> 16)
+		slicedArray[3] = byte(x >> 24)
+		fmt.Printf("0b%08b, 0b%08b, 0b%08b, 0b%08b\n",
+			slicedArray[3], slicedArray[0], slicedArray[1], slicedArray[2])
+		return 4
+	}
+
 	return 0
 }
 
