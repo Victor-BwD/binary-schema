@@ -112,7 +112,7 @@ func PutUvarint(slicedArray []byte, x uint64) int {
 	if x <= 0xffffffff {
 		slicedArray := make([]byte, 5)
 
-		slicedArray[0] = 0x80 | 0b01000100
+		slicedArray[0] = 0xc0 | 4
 		slicedArray[1] = byte(x >> 24)
 		slicedArray[2] = byte(x >> 16)
 		slicedArray[3] = byte(x >> 8)
