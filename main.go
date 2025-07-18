@@ -89,42 +89,22 @@ func (c *Column) Binary() []uint8 {
 
 func PutUvarint(slicedArray []byte, x uint64) int {
 
-	var size int // Tamanho do número em bytes
-	if x == 0 {
-		size = 1
-	} else {
-		for v := x; v > 0; v >>= 8 {
-			size++
+	indice := 1
+	started := false
+
+	for j := 56; j >= 0; j -= 8 {
+		b := byte(x >> j)
+		if b != 0 || started || j == 0 {
+			started = true
+			slicedArray[indice] = b
+			indice++
 		}
 	}
 
-	var marker byte
-	switch size {
-	case 1:
-		marker = 0xc1
-	case 2:
-		marker = 0xc2
-	case 3, 4:
-		marker = 0xc4
-		size = 4
-	case 5, 6, 7, 8:
-		marker = 0xc8
-		size = 8
-	}
-
-	slicedArray[0] = marker
-
-	for i := 1; i <= size; i++ {
-		shift := (size - i) * 8
-		slicedArray[i] = byte(x >> shift)
-	}
-
-	totalBytes := size + 1
-	for i := 0; i < totalBytes; i++ {
+	size := indice - 1
+	slicedArray[0] = 0xc0 | byte(size)
+	for i := 0; i < indice; i++ {
 		fmt.Printf("0b%08b ", slicedArray[i])
-		if i < totalBytes-1 {
-			fmt.Print(", ")
-		}
 	}
 
 	/*if x <= 0xff {
@@ -151,7 +131,7 @@ func PutUvarint(slicedArray []byte, x uint64) int {
 		return 4
 	}*/
 
-	return 0
+	return indice
 }
 
 func main() {
@@ -164,7 +144,7 @@ func main() {
 		},
 	}*/
 
-	PutUvarint(make([]byte, 10), 500)
+	PutUvarint(make([]byte, 10), 65000)
 
 	//fmt.Println(schema.JsonString())
 }
