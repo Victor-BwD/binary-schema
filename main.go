@@ -90,12 +90,10 @@ func (c *Column) Binary() []uint8 {
 func PutUvarint(slicedArray []byte, x uint64) int {
 
 	indice := 1
-	started := false
 
-	for j := 56; j >= 0; j -= 8 {
+	for j := 56 - (8 * indice); j >= 0; j -= 8 {
 		b := byte(x >> j)
-		if b != 0 || started || j == 0 {
-			started = true
+		if b != 0 || j == 0 {
 			slicedArray[indice] = b
 			indice++
 		}
