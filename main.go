@@ -88,10 +88,15 @@ func (c *Column) Binary() []uint8 {
 }
 
 func PutUvarint(slicedArray []byte, x uint64) int {
+	if x == 0 {
+		slicedArray[0] = 0xc0
+		fmt.Printf("0b%08b ", slicedArray[0])
+		return 1
+	}
 
 	indice := 1
 
-	for j := 56 - (8 * indice); j >= 0; j -= 8 {
+	for j := 56; j >= 0; j -= 8 {
 		b := byte(x >> j)
 		if b != 0 || j == 0 {
 			slicedArray[indice] = b
