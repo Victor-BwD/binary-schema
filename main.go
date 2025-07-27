@@ -87,11 +87,11 @@ func (c *Column) Binary() []uint8 {
 	return make([]uint8, 0)
 }
 
-func PutUvarint(slicedArray []byte, x uint64) int {
+func PutUvarint(slicedArray []byte, x uint64) []byte {
 	if x == 0 {
 		slicedArray[0] = 0xc0
 		fmt.Printf("0b%08b ", slicedArray[0])
-		return 1
+		return slicedArray[:1]
 	}
 
 	indice := 1
@@ -134,7 +134,27 @@ func PutUvarint(slicedArray []byte, x uint64) int {
 		return 4
 	}*/
 
-	return indice
+	return slicedArray[:indice]
+}
+
+func PutString(buffer []byte, str string) int {
+	length := byte(len(str))
+
+	fmt.Printf("Tamanho da string: %d\n", byte(length))
+
+	buffer[0] = 0xd1 // 0b11010001, indicando que é uma string
+
+	bytesWrittenSlice := PutUvarint(buffer[1:], uint64(length))
+	bytesWritten := len(bytesWrittenSlice)
+
+	copy(buffer[1+bytesWritten:], []byte(str))
+
+	strStart := 1 + bytesWritten
+	for i := strStart; i < strStart+len(str); i++ {
+		fmt.Printf("0b%08b ", buffer[i])
+	}
+
+	return 1 + bytesWritten + len(str)
 }
 
 func main() {
@@ -147,7 +167,12 @@ func main() {
 		},
 	}*/
 
-	PutUvarint(make([]byte, 10), 65000)
+	//PutUvarint(make([]byte, 10), 65000)
+	array := make([]byte, 100)
+
+	bytesInString := PutString(array, "à")
+
+	fmt.Printf("\nBytes usados: %d\n", bytesInString)
 
 	//fmt.Println(schema.JsonString())
 }
