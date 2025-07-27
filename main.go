@@ -90,7 +90,7 @@ func (c *Column) Binary() []uint8 {
 func PutUvarint(slicedArray []byte, x uint64) []byte {
 	if x == 0 {
 		slicedArray[0] = 0xc0
-		fmt.Printf("0b%08b ", slicedArray[0])
+		fmt.Printf("0x%02x ", slicedArray[0])
 		return slicedArray[:1]
 	}
 
@@ -107,7 +107,7 @@ func PutUvarint(slicedArray []byte, x uint64) []byte {
 	size := indice - 1
 	slicedArray[0] = 0xc0 | byte(size)
 	for i := 0; i < indice; i++ {
-		fmt.Printf("0b%08b ", slicedArray[i])
+		fmt.Printf("0x%02x ", slicedArray[i])
 	}
 
 	/*if x <= 0xff {
@@ -143,6 +143,7 @@ func PutString(buffer []byte, str string) int {
 	fmt.Printf("Tamanho da string: %d\n", byte(length))
 
 	buffer[0] = 0xd1 // 0b11010001, indicando que é uma string
+	fmt.Printf("0x%02x ", buffer[0])
 
 	bytesWrittenSlice := PutUvarint(buffer[1:], uint64(length))
 	bytesWritten := len(bytesWrittenSlice)
@@ -151,7 +152,7 @@ func PutString(buffer []byte, str string) int {
 
 	strStart := 1 + bytesWritten
 	for i := strStart; i < strStart+len(str); i++ {
-		fmt.Printf("0b%08b ", buffer[i])
+		fmt.Printf("0x%02x ", buffer[i])
 	}
 
 	return 1 + bytesWritten + len(str)
