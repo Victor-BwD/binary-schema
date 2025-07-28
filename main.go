@@ -138,6 +138,11 @@ func PutUvarint(slicedArray []byte, x uint64) []byte {
 }
 
 func PutString(buffer []byte, str string) int {
+	if len(str) > 100 {
+		fmt.Println("String muito longa, máximo de 100 caracteres.")
+		return 0
+	}
+
 	length := byte(len(str))
 
 	fmt.Printf("Tamanho da string: %d\n", byte(length))
