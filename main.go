@@ -150,12 +150,12 @@ func PutString(buffer []byte, str string) int {
 	buffer[0] = 0xd1 // 0b11010001, indicando que é uma string
 	fmt.Printf("0x%02x ", buffer[0])
 
-	bytesWrittenSlice := PutUvarint(buffer[1:], uint64(length))
-	bytesWritten := len(bytesWrittenSlice)
+	lengthBytes := PutUvarint(buffer[1:], uint64(length)) // Passa a string e o tamanho dela para a função trazer o tamanho em bytes
+	bytesWritten := len(lengthBytes)
 
-	copy(buffer[1+bytesWritten:], []byte(str))
+	copy(buffer[1+bytesWritten:], []byte(str)) // copia a string para o buffer, começando após o indice de bytes escritos
 
-	strStart := 1 + bytesWritten
+	strStart := 1 + bytesWritten // Calcula o índice onde a string começa no buffer
 	for i := strStart; i < strStart+len(str); i++ {
 		fmt.Printf("0x%02x ", buffer[i])
 	}
