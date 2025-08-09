@@ -138,11 +138,6 @@ func PutUvarint(slicedArray []byte, x uint64) []byte {
 }
 
 func PutString(buffer []byte, str string) int {
-	if len(str) > 100 {
-		fmt.Println("String muito longa, máximo de 100 caracteres.")
-		return 0
-	}
-
 	length := byte(len(str))
 
 	fmt.Printf("Tamanho da string: %d\n", byte(length))
@@ -161,6 +156,19 @@ func PutString(buffer []byte, str string) int {
 	}
 
 	return 1 + bytesWritten + len(str)
+}
+
+func PutColumnType(buffer []byte, columnType ColumnType, nullable bool) (int, error) {
+	value, err := columnType.Binary(nullable)
+	if err != nil {
+		return 0, err
+	}
+
+	buffer[0] = 0xd2
+	buffer[1] = value
+	fmt.Printf("0x%02x 0x%02x ", buffer[0], buffer[1])
+
+	return 2, nil
 }
 
 func main() {
