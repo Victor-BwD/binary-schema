@@ -54,7 +54,14 @@ func (s *Schema) JsonString() string {
 }
 
 func (s *Schema) Binary() []uint8 {
-	return make([]uint8, 0)
+	var bufferToSchema []byte
+
+	for _, column := range s.Columns {
+		columnBinary := column.Binary()
+		bufferToSchema = append(bufferToSchema, columnBinary...)
+	}
+
+	return bufferToSchema
 }
 
 func (c ColumnType) Binary(nullable bool) (uint8, error) {
@@ -84,7 +91,22 @@ func (c ColumnType) Binary(nullable bool) (uint8, error) {
 }
 
 func (c *Column) Binary() []uint8 {
-	return make([]uint8, 0)
+	buffer := make([]byte, 1024)
+	offset := 0
+
+	// Write column name
+	nameBytesWritten := PutString(buffer[offset:], c.Name)
+	offset += nameBytesWritten
+
+	// Write column type
+	typeBytesWritten, err := PutColumnType(buffer[offset:], c.Type, c.Nullable)
+	if err != nil {
+		fmt.Println("Error writing column type:", err)
+		return nil
+	}
+	offset += typeBytesWritten
+
+	return buffer[:offset]
 }
 
 func PutUvarint(slicedArray []byte, x uint64) []byte {
@@ -106,15 +128,18 @@ func PutUvarint(slicedArray []byte, x uint64) []byte {
 }
 
 func PutString(buffer []byte, str string) int {
-	length := byte(len(str))
+	length := len(str)
+
+	fmt.Printf("DEBUG [PutString] Recebi a string: '%s'. Tamanho em bytes (len): %d\n", str, length)
 
 	buffer[0] = 0xd1 // 0b11010001, indicando que é uma string
 
 	lengthBytes := PutUvarint(buffer[1:], uint64(length)) // Passa a string e o tamanho dela para a função trazer o tamanho em bytes
-	bytesWritten := len(lengthBytes)
+	bytesWritten := len(lengthBytes)                      // Quantidade de bytes escritos para o tamanho da string
 
 	copy(buffer[1+bytesWritten:], []byte(str)) // copia a string para o buffer, começando após o indice de bytes escritos
 
+	fmt.Printf("DEBUG [PutString] Buffer preenchido até agora: %x\n", buffer[:1+bytesWritten+len(str)])
 	return 1 + bytesWritten + len(str)
 }
 
@@ -132,21 +157,36 @@ func PutColumnType(buffer []byte, columnType ColumnType, nullable bool) (int, er
 }
 
 func main() {
-	/*schema := Schema{
+	schema := Schema{
 		Columns: []Column{
 			{Name: "id", Type: ColumnTypeInt, Nullable: false},
 			{Name: "name", Type: ColumnTypeString, Nullable: false},
 			{Name: "price", Type: ColumnTypeFloat, Nullable: true},
 			{Name: "available", Type: ColumnTypeBool, Nullable: false},
 		},
-	}*/
+	}
 
-	//PutUvarint(make([]byte, 10), 65000)
-	array := make([]byte, 100)
+	binario := schema.Binary() // Gera o binário do schema
 
-	bytesInString := PutString(array, "à")
-
-	fmt.Printf("\nBytes usados: %d\n", bytesInString)
+	VisualizarBinario(binario)
 
 	//fmt.Println(schema.JsonString())
+}
+
+func VisualizarBinario(data []byte) {
+	fmt.Println("\n=== Mostra Bonito ===")
+
+	for i := 0; i < len(data); i++ {
+		b := data[i]
+
+		if b == 0xd1 {
+			fmt.Printf("\n[Nova Coluna] ")
+		}
+
+		if b == 0xd2 {
+			fmt.Print("   |   [Definição] ")
+		}
+		fmt.Printf("%02x ", b)
+	}
+	fmt.Println("\n\n=========================")
 }
