@@ -131,18 +131,6 @@ func PutColumnType(buffer []byte, columnType ColumnType, nullable bool) (int, er
 	return 2, nil
 }
 
-func PutColumnType(buffer []byte, columnType ColumnType, nullable bool) (int, error) {
-	value, err := columnType.Binary(nullable)
-	if err != nil {
-		return 0, err
-	}
-	buffer[0] = 0xd2
-	buffer[1] = value
-	fmt.Printf("0x%02x 0x%02x ", buffer[0], buffer[1])
-	
-	return 2, nil
-}
-
 func main() {
 	/*schema := Schema{
 		Columns: []Column{
